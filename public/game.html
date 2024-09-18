@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details - Game Stock Exchange</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Game Details - Game Stock Exchange</h1>
+
+    <button id="disconnectBtn">Disconnect</button>
+
+    <section id="playerPortfolio">
+        <h2>Your Portfolio</h2>
+        <div id="playerPortfolioDetails"></div>
+    </section>
+
+    <section id="otherPlayers">
+        <h2>Other Players</h2>
+        <ul id="otherPlayersList"></ul>
+    </section>
+
+    <section id="buyStock">
+        <h2>Buy Stock</h2>
+        <form id="buyStockForm">
+            Stock Name: <input type="text" name="stockname" required><br>
+            Amount: <input type="number" name="amount" required><br>
+            <button type="submit">Buy</button>
+        </form>
+    </section>
+
+    <section id="sellStock">
+        <h2>Sell Stock</h2>
+        <form id="sellStockForm">
+            Stock Name: <input type="text" name="stockname" required><br>
+            Amount: <input type="number" name="amount" required><br>
+            <button type="submit">Sell</button>
+        </form>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameID = urlParams.get('gameID');
+            const username = urlParams.get('username');
+
+            function fetchGameDetails() {
+                $.get(`/game/${gameID}`, function(game) {
+                    const playerPortfolio = game.portfolios.find(p => p.playerUsername === username);
+                    if(playerPortfolio) {
+                        $('#playerPortfolioDetails').html(`
+                            Cash: ${playerPortfolio.cash}<br>
+                            Stocks: ${JSON.stringify(playerPortfolio.stocks)}
+                        `);
+                    }
+
+                    game.portfolios.forEach(portfolio => {
+                        if(portfolio.playerUsername !== username) {
+                            $('#otherPlayersList').append(`<li>${portfolio.playerUsername}: Net Worth - ${portfolio.cash}</li>`);
+                        }
+                    });
+                }).fail(function() {
+                    alert('Failed to fetch game details.');
+                });
+            }
+
+            $('#disconnectBtn').click(function() {
+                $.post('/disconnect', {}, function(response) {
+                    alert('Disconnected');
+                    window.location.href = 'index.html'; // Redirect to login
+                }).fail(function(jqXHR) {
+                    alert('Error disconnecting: ' + jqXHR.responseText);
+                });
+            });
+
+            // Buy Stock form submission
+            $('#buyStockForm').submit(function(e) {
+                e.preventDefault();
+                const data = {
+                    playerUsername: username,
+                    stockname: $('input[name="stockname"]').val(),
+                    amount: parseInt($('input[name="amount"]').val(), 10),
+                    givengameID: gameID
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "/buy",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        alert('Stock Purchased Successfully');
+                        fetchGameDetails();
+                    },
+                    error: function(jqXHR) {
+                        alert('Error Purchasing Stock: ' + jqXHR.responseText);
+                    }
+                });
+            });
+
+            // Sell Stock form submission
+            $('#sellStockForm').submit(function(e) {
+    e.preventDefault();
+
+    // Correctly capturing the stockname and amount values from the form
+    const stockname = $(this).find('input[name="stockname"]').val();
+    const amount = parseInt($(this).find('input[name="amount"]').val(), 10);
+
+    const data = {
+        playerUsername: username, // Assuming 'username' is correctly obtained from URL parameters
+        stockname: stockname,
+        amount: amount,
+        givengameID: gameID // Assuming 'gameID' is correctly obtained from URL parameters
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "/sell",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success: function(response) {
+            alert('Stock Sold Successfully');
+            fetchGameDetails(); // Refresh the game details to reflect the updated portfolio
+        },
+        error: function(jqXHR) {
+            alert('Error Selling Stock: ' + jqXHR.responseText);
+        }
+    });
+});
+
+
+            fetchGameDetails(); // Initial call to fetch and display game details
+        });
+    </script>
+</body>
+</html>

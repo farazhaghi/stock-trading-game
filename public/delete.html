@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Stock Exchange</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Game Stock Exchange</h1>
+
+    <h2>Register Player</h2>
+    <form id="registerForm">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        Is Admin: <input type="checkbox" name="isAdmin"><br>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Create Game Session</h2>
+    <form id="createGameForm">
+        Game ID: <input type="text" name="gameID" required><br>
+        Starting Cash: <input type="number" name="startingCash" required><br>
+        Duration (days): <input type="number" name="duration" required><br>
+        Start Date: <input type="date" name="startDate" required><br>
+        End Date: <input type="date" name="endDate" required><br>
+        <input type="hidden" name="concluded" value="false"><br>
+        <input type="hidden" name="winner" value=""><br>
+        <button type="submit">Create Game</button>
+    </form>
+
+    <h2>Buy Stock</h2>
+    <form id="buyStockForm">
+        Player Username: <input type="text" name="playerUsername" required><br>
+        Stock Name: <input type="text" name="stockname" required><br>
+        Amount: <input type="number" name="amount" required min="1"><br>
+        Game ID: <input type="text" name="givengameID" required><br>
+        <button type="submit">Buy Stock</button>
+    </form>
+
+    <h2>Sell Stock</h2>
+    <form id="sellStockForm">
+        Player Username: <input type="text" name="playerUsername" required><br>
+        Stock Name: <input type="text" name="stockname" required><br>
+        Amount: <input type="number" name="amount" required min="1"><br>
+        Game ID: <input type="text" name="givengameID" required><br>
+        <button type="submit">Sell Stock</button>
+    </form>
+
+    <h2>Conclude Game Session</h2>
+    <form id="concludeGameForm">
+        Game ID: <input type="text" name="gameID" required><br>
+        <button type="submit">Conclude Game</button>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function() {
+            $('#registerForm').submit(function(e) {
+                e.preventDefault();
+                const data = $(this).serializeArray();
+                const isAdmin = data.some(field => field.name === 'isAdmin' && field.value === 'on');
+                const body = {
+                    username: data.find(field => field.name === 'username').value,
+                    password: data.find(field => field.name === 'password').value,
+                    games: [],
+                    isAdmin: isAdmin
+                };
+                $.post('/register', body, function(response) {
+                    alert('Player Registered');
+                }).fail(function(jqXHR) {
+                    alert('Error: ' + jqXHR.responseText);
+                });
+            });
+
+            $('#createGameForm').submit(function(e) {
+                e.preventDefault();
+                const data = $(this).serializeArray();
+                const body = {
+                    gameID: data.find(field => field.name === 'gameID').value,
+                    players: [], // Assuming no players at creation; modify as needed
+                    startingCash: parseInt(data.find(field => field.name === 'startingCash').value),
+                    duration: parseInt(data.find(field => field.name === 'duration').value),
+                    startDate: data.find(field => field.name === 'startDate').value,
+                    endDate: data.find(field => field.name === 'endDate').value,
+                    concluded: false,
+                    winner: "",
+                    portfolios: [],
+                    username: "" // Add username if needed
+                };
+                $.post('/game', body, function(response) {
+                    alert('Game Session Created');
+                }).fail(function(jqXHR) {
+                    alert('Error: ' + jqXHR.responseText);
+                });
+            });
+
+            $('#buyStockForm').submit(function(e) {
+                e.preventDefault();
+                const body = $(this).serialize();
+                $.post('/buy', body, function(response) {
+                    alert('Stock Bought');
+                }).fail(function(jqXHR) {
+                    alert('Error: ' + jqXHR.responseText);
+                });
+            });
+
+            $('#sellStockForm').submit(function(e) {
+                e.preventDefault();
+                const body = $(this).serialize();
+                $.post('/sell', body, function(response) {
+                    alert('Stock Sold');
+                }).fail(function(jqXHR) {
+                    alert('Error: ' + jqXHR.responseText);
+                });
+            });
+
+            $('#concludeGameForm').submit(function(e) {
+                e.preventDefault();
+                const body = $(this).serialize();
+                $.post('/conclude', body, function(response) {
+                    alert('Game Session Concluded');
+                }).fail(function(jqXHR) {
+                    alert('Error: ' + jqXHR.responseText);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

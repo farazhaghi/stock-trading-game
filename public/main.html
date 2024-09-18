@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page - Game Stock Exchange</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Game Stock Exchange - Main Page</h1>
+
+    <button id="disconnectBtn">Disconnect</button>
+
+    <section id="createGameSection">
+        <h2>Create Game</h2>
+        <form id="createGameForm">
+            Game ID: <input type="text" name="gameID" required><br>
+            Players (comma-separated, e.g., player1,player2): <input type="text" name="players" required><br>
+            Starting Cash: <input type="number" name="startingCash" required><br>
+            Duration (days): <input type="number" name="duration" required><br>
+            Start Date: <input type="date" name="startDate" required><br>
+            End Date: <input type="date" name="endDate" required><br>
+            Username (Admin): <input type="text" name="username" required><br>
+            <button type="submit">Create Game</button>
+        </form>
+    </section>
+
+    <section id="enterGameSection">
+        <h2>Enter Game</h2>
+        <form id="enterGameForm">
+            Username: <input type="text" name="username" required><br>
+            Game ID: <input type="text" name="gameID" required><br>
+            <button type="submit">Enter Game</button>
+        </form>
+    </section>
+
+    <section id="concludeGameSection">
+        <h2>Conclude Game</h2>
+        <form id="concludeGameForm">
+            Game ID: <input type="text" name="gameID" required><br>
+            <button type="submit">Conclude Game</button>
+        </form>
+    </section>
+
+    <section id="listOfGames">
+        <h2>List of Games</h2>
+        <ul id="gamesList"></ul>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function() {
+            $('#disconnectBtn').click(function() {
+                $.post('/disconnect', {}, function(response) {
+                    alert('Disconnected');
+                    window.location.href = 'loginregister.html';
+                }).fail(function(jqXHR) {
+                    alert('Error disconnecting: ' + jqXHR.responseText);
+                });
+            });
+
+            $('#createGameForm').submit(function(e) {
+                e.preventDefault();
+                let formData = $(this).serializeArray();
+                let bodyData = {};
+                
+                formData.forEach(field => {
+                    if (field.name === "players") {
+                        bodyData[field.name] = field.value.split(',');
+                    } else {
+                        bodyData[field.name] = field.value;
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: "/game",
+                    contentType: "application/json",
+                    data: JSON.stringify(bodyData),
+                    success: function(response) {
+                        alert('Game Created Successfully');
+                        fetchAndDisplayGames();
+                    },
+                    error: function(jqXHR) {
+                        alert('Error Creating Game: ' + jqXHR.responseText);
+                    }
+                });
+            });
+
+            $('#enterGameForm').submit(function(e) {
+                e.preventDefault();
+                const formData = $(this).serializeArray();
+                const gameID = formData.find(field => field.name === 'gameID').value;
+                const username = formData.find(field => field.name === 'username').value;
+
+                window.location.href = `game.html?gameID=${encodeURIComponent(gameID)}&username=${encodeURIComponent(username)}`;
+            });
+
+            $('#concludeGameForm').submit(function(e) {
+                e.preventDefault();
+                const gameID = $(this).serialize();
+
+                $.post('/conclude', gameID, function(response) {
+                    alert('Game Concluded Successfully');
+                    fetchAndDisplayGames();
+                }).fail(function(jqXHR) {
+                    alert('Error Concluding Game: ' + jqXHR.responseText);
+                });
+            });
+
+            function fetchAndDisplayGames() {
+                $.get('/games', function(games) {
+                    $('#gamesList').empty();
+                    games.forEach(function(game) {
+                        let gameDetails = `Game ID: ${game.gameID}, Players: ${game.players.join(', ')}, Start: ${game.startDate}, End: ${game.endDate}, Finished: ${game.concluded}`;
+                        $('#gamesList').append(`<li>${gameDetails}</li>`);
+                    });
+                }).fail(function() {
+                    $('#gamesList').append('<li>Error loading games.</li>');
+                });
+            }
+
+            fetchAndDisplayGames();
+        });
+    </script>
+</body>
+</html>

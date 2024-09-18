@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register - Game Stock Exchange</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Game Stock Exchange</h1>
+
+    <section id="loginSection">
+        <h2>Login</h2>
+        <form id="loginForm">
+            Username: <input type="text" name="username" required><br>
+            Password: <input type="password" name="password" required><br>
+            <button type="submit">Login</button>
+        </form>
+    </section>
+
+    <section id="registerSection">
+        <h2>Register Player</h2>
+        <form id="registerForm">
+            Username: <input type="text" name="username" required><br>
+            Password: <input type="password" name="password" required><br>
+            Is Admin: <input type="checkbox" name="isAdmin"><br>
+            <button type="submit">Register</button>
+        </form>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function() {
+            $('#loginForm').submit(function(e) {
+                e.preventDefault();
+                const loginData = $(this).serialize();
+                $.post('/login', loginData, function(response) {
+                    alert('Login Successful');
+                    window.location.href = 'main.html'; // Redirect to main.html
+                }).fail(function(jqXHR) {
+                    alert('Login Failed: ' + jqXHR.responseText);
+                    // Stay on the page for the user to try again or register
+                });
+            });
+
+            $('#registerForm').submit(function(e) {
+                e.preventDefault();
+                const registerData = $(this).serialize();
+                $.post('/register', registerData, function(response) {
+                    alert('Registration Successful. Please login.');
+                }).fail(function(jqXHR) {
+                    alert('Registration Failed: ' + jqXHR.responseText);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

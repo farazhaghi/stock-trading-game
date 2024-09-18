@@ -1,0 +1,26 @@
+{
+  "name": "contacts-app-v2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "amilcarsj",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.4",
+    "express": "^4.19.2",
+    "mongodb": "^5.0.1",
+    "supertest": "^6.3.4",
+    "validator": "^13.5.2"
+  },
+  "devDependencies": {
+    "mocha": "^9.2.2"
+  },
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [],
+  "description": ""
+}
